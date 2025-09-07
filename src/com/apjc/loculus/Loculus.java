@@ -6,8 +6,33 @@ import java.util.ArrayList;
 public class Loculus <T> {
 	
 	private Noda noda;
+	private String cod;
 	
-	public String setCod(T[] data) {
+	public Loculus(List<T> data) {
+		setCod(data);
+	}
+	
+	public void add(T values) {
+		List<T> data = getValues();
+		noda.add(values);
+		data.add(values);
+		setCod(data);
+	}
+	
+	public void add(List<T> list) {
+		List<T> data = getValues();
+		for(T val : list) {
+			noda.add(val);
+			data.add(val);
+		}
+		setCod(data);
+	}
+	
+	public String getCod() {
+		return cod;
+	}
+	
+	private void setCod(List<T> data) {
 		for(T val : data) {
 			if(noda == null) {
 				noda = new Noda(val);
@@ -15,14 +40,13 @@ public class Loculus <T> {
 				noda.add(val);
 			}
 		}
-		String cod = "";
+		cod = "";
 		for(T val : data) {
 			cod += noda.getCod(val);
 		}
-		return cod;
 	}
 	
-	public List<T> getValues(String cod) {
+	public List<T> getValues() {
 		List<T> data = new ArrayList<>();
 		String codes = "";
 		for(char el : cod.toCharArray()) {
