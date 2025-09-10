@@ -40,22 +40,14 @@ public class Loculus <T> {
 				noda.add(val);
 			}
 		}
-		List<Integer> list = new ArrayList<>();
-		int sum = 0;
+		bitCod = new BitData(0);
 		for(T val : data) {
 			int d = noda.getIndex(val) + 1;
-			if(d >= 0) {
-				list.add(d);
-				sum += d;
+			BitData pas = new BitData(d);
+			for(int i = 0; i + 1 < d; i++) {
+				pas.setBit(i, true);
 			}
-		}
-		bitCod = new BitData(sum);
-		int index = 0;
-		for(int i : list) {
-			for(int j = 0;  j + 1 < i; j++) {
-				bitCod.setBit(index + j, true);
-			}
-			index += i;
+			bitCod = BitData.split(bitCod, pas);
 		}
 	}
 	

@@ -14,17 +14,20 @@ public class BitData {
 		array = new byte[size];
 	}
 	
-	public static BitData split(BitData val1, BitData val2) {
-		int size1 = val1.size;
-		int size2 = val2.size;
-		BitData data = new BitData(size1 + size2);
-		for(int i = 0; i < size1; i++) {
-			data.setBit(i, val1.isActiveBit(i));
+	public static BitData split(BitData... vals) {
+		int size = 0;
+		for(BitData d : vals) {
+			size += d.size;
 		}
-		for(int i = 0; i < size1; i++) {
-			data.setBit(i + size1, val2.isActiveBit(i));
+		BitData newData = new BitData(size);
+		int index = 0;
+		for(BitData d : vals) {
+			for(int i = 0; i < d.size; i++) {
+				newData.setBit(index, d.isActiveBit(i));
+				index++;
+			}
 		}
-		return data;
+		return newData;
 	}
 	
 	public void setBit(int position, boolean isActive) {
