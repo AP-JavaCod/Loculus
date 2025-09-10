@@ -6,7 +6,7 @@ import java.util.ArrayList;
 public class Loculus <T> {
 	
 	private Noda noda;
-	private String cod;
+	private BitData bitCod;
 	
 	public Loculus(List<T> data) {
 		setCod(data);
@@ -29,7 +29,7 @@ public class Loculus <T> {
 	}
 	
 	public String getCod() {
-		return cod;
+		return bitCod.toString();
 	}
 	
 	private void setCod(List<T> data) {
@@ -40,20 +40,35 @@ public class Loculus <T> {
 				noda.add(val);
 			}
 		}
-		cod = "";
+		List<Integer> list = new ArrayList<>();
+		int sum = 0;
 		for(T val : data) {
-			cod += noda.getCod(val);
+			int d = noda.getIndex(val) + 1;
+			if(d >= 0) {
+				list.add(d);
+				sum += d;
+			}
+		}
+		bitCod = new BitData(sum);
+		int index = 0;
+		for(int i : list) {
+			for(int j = 0;  j + 1 < i; j++) {
+				bitCod.setBit(index + j, true);
+			}
+			index += i;
 		}
 	}
 	
 	public List<T> getValues() {
 		List<T> data = new ArrayList<>();
-		String codes = "";
-		for(char el : cod.toCharArray()) {
-			codes += el;
-			if(el == '0') {
-				data.add(noda.getValues(codes));
-				codes = "";
+		int size = bitCod.getSize();
+		int index = 0;
+		for(int i = 0; i < size; i++) {
+			if(bitCod.isActiveBit(i)) {
+				index++;
+			}else {
+				data.add(noda.getValues(index));
+				index = 0;
 			}
 		}
 		return data;
@@ -88,20 +103,18 @@ public class Loculus <T> {
 			}
 		}
 		
-		public String getCod(T elements) {
-			if(this.values.equals(elements)) {
-				return "0";
+		public int getIndex(T element) {
+			if(this.values.equals(element)) {
+				return 0;
 			}
-			return next != null ? "1" + next.getCod(elements) : null;
+			return next != null ? 1 + next.getIndex(element) : -1;
 		}
 		
-		public T getValues(String cod) {
-			if(cod.equals("0")) {
+		public T getValues(int index) {
+			if(index == 0) {
 				return values;
-			}else if(next != null) {
-				return next.getValues(cod.substring(1, cod.length()));
 			}
-			return null;
+			return next != null ? next.getValues(index - 1) : null;
 		}
 		
 	}
