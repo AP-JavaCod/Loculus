@@ -1,9 +1,10 @@
 package com.apjc.loculus;
 
 import java.util.List;
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Loculus <T> {
+public class Loculus <T> implements Serializable{
 	
 	private Noda noda;
 	private BitData bitCod;
@@ -42,10 +43,10 @@ public class Loculus <T> {
 		}
 		bitCod = new BitData(0);
 		for(T val : data) {
-			int d = noda.getIndex(val) + 1;
-			BitData pas = new BitData(d);
-			for(int i = 0; i + 1 < d; i++) {
-				pas.setBit(i, true);
+			int size = noda.getIndex(val) + 1;
+			BitData pas = new BitData(size);
+			for(int i = 1; i < size; i++) {
+				pas.setBit(i - 1, true);
 			}
 			bitCod = BitData.split(bitCod, pas);
 		}
@@ -53,10 +54,9 @@ public class Loculus <T> {
 	
 	public List<T> getValues() {
 		List<T> data = new ArrayList<>();
-		int size = bitCod.getSize();
 		int index = 0;
-		for(int i = 0; i < size; i++) {
-			if(bitCod.isActiveBit(i)) {
+		for(boolean bool : bitCod.isActiveAll()) {
+			if(bool) {
 				index++;
 			}else {
 				data.add(noda.getValues(index));
@@ -66,7 +66,7 @@ public class Loculus <T> {
 		return data;
 	}
 	
-	private class Noda{
+	private class Noda implements Serializable{
 		
 		private T values;
 		private int quantityValues;

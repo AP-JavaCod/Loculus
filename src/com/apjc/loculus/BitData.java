@@ -1,28 +1,30 @@
 package com.apjc.loculus;
 
-public class BitData {
+import java.io.Serializable;
+
+public class BitData implements Serializable{
 	
-	private final int size;
-	private final byte[] array;
+	private final int SIZE;
+	private final byte[] buffer;
 	
 	public BitData(int bitSize) {
-		this.size = bitSize;
+		SIZE = bitSize;
 		int size = bitSize / 8;
 		if(bitSize % 8 > 0) {
 			size++;
 		}
-		array = new byte[size];
+		buffer = new byte[size];
 	}
 	
 	public static BitData split(BitData... vals) {
 		int size = 0;
 		for(BitData d : vals) {
-			size += d.size;
+			size += d.SIZE;
 		}
 		BitData newData = new BitData(size);
 		int index = 0;
 		for(BitData d : vals) {
-			for(int i = 0; i < d.size; i++) {
+			for(int i = 0; i < d.SIZE; i++) {
 				newData.setBit(index, d.isActiveBit(i));
 				index++;
 			}
@@ -31,35 +33,43 @@ public class BitData {
 	}
 	
 	public void setBit(int position, boolean isActive) {
-		if(size <= position) {
+		if(SIZE <= position) {
 			throw new ArrayIndexOutOfBoundsException();
 		}
 		int index = position / 8;
 		int bitPos = position % 8;
 		if(isActive) {
-			array[index] |= (1 << bitPos);
+			buffer[index] |= (1 << bitPos);
 		}else {
-			array[index] &= ~(1 << bitPos);
+			buffer[index] &= ~(1 << bitPos);
 		}
 	}
 	
 	public boolean isActiveBit(int position) {
-		if(size <= position) {
+		if(SIZE <= position) {
 			throw new ArrayIndexOutOfBoundsException();
 		}
 		int index = position / 8;
 		int bitPos = position % 8;
-		return (array[index] & (1 << bitPos)) != 0;
+		return (buffer[index] & (1 << bitPos)) != 0;
+	}
+	
+	public boolean[] isActiveAll() {
+		boolean[] bool = new boolean[SIZE];
+		for(int i = 0; i < SIZE; i++) {
+			bool[i] = isActiveBit(i);
+		}
+		return bool;
 	}
 	
 	public int getSize() {
-		return size;
+		return SIZE;
 	}
 	
 	@Override
 	public String toString() {
 		String str = "";
-		for(int i = 0; i < size; i++) {
+		for(int i = 0; i < SIZE; i++) {
 			str += isActiveBit(i) ? "1" : "0";
 		}
 		return str;
