@@ -1,6 +1,7 @@
 package com.apjc.loculus;
 
 import java.util.List;
+import java.util.concurrent.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -9,18 +10,18 @@ public class Loculus <T> implements Serializable{
 	private Noda noda;
 	private BitData bitCod;
 	
-	public Loculus(List<T> data) {
+	public Loculus(List<T> data) throws InterruptedException {
 		setCod(data);
 	}
 	
-	public void add(T values) {
+	public void add(T values) throws InterruptedException  {
 		List<T> data = getValues();
 		noda.add(values);
 		data.add(values);
 		setCod(data);
 	}
 	
-	public void add(List<T> list) {
+	public void add(List<T> list) throws InterruptedException {
 		List<T> data = getValues();
 		for(T val : list) {
 			noda.add(val);
@@ -33,7 +34,7 @@ public class Loculus <T> implements Serializable{
 		return bitCod.toString();
 	}
 	
-	private void setCod(List<T> data) {
+	private void setCod(List<T> data) throws InterruptedException {
 		for(T val : data) {
 			if(noda == null) {
 				noda = new Noda(val);
@@ -41,15 +42,24 @@ public class Loculus <T> implements Serializable{
 				noda.add(val);
 			}
 		}
-		bitCod = new BitData(0);
-		for(T val : data) {
-			int size = noda.getIndex(val) + 1;
-			BitData pas = new BitData(size);
-			for(int i = 1; i < size; i++) {
-				pas.setBit(i - 1, true);
-			}
-			bitCod = BitData.split(bitCod, pas);
+		int sizeList = data.size();
+		BitData[] buffers = new BitData[sizeList];
+		for(int i = 0; i < sizeList; i++) {
+			buffers[i] = new BitData(noda.getIndex(data.get(i)) + 1);
 		}
+		ExecutorService pool = Executors.newFixedThreadPool(4);
+		List<Callable<Object>> task = new ArrayList<>();
+		for(int i = 0; i < sizeList; i++) {
+			BitData buffer = buffers[i];
+			task.add(Executors.callable(() -> {
+				for(int j = 1; j < buffer.size(); j++) {
+					buffer.setBit(j - 1, true);
+				}
+			}));
+		}
+		List<Future<Object>> futures = pool.invokeAll(task);
+		pool.shutdown();
+		bitCod = BitData.split(buffers);
 	}
 	
 	public List<T> getValues() {

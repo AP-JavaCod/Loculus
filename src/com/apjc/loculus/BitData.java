@@ -1,6 +1,9 @@
 package com.apjc.loculus;
 
 import java.io.Serializable;
+import java.util.concurrent.*;
+import java.util.List;
+import java.util.ArrayList;
 
 public class BitData implements Serializable{
 	
@@ -16,23 +19,32 @@ public class BitData implements Serializable{
 		buffer = new byte[size];
 	}
 	
-	public static BitData split(BitData... vals) {
-		int size = 0;
-		for(BitData d : vals) {
-			size += d.SIZE;
+	public static BitData split(BitData... vals) throws InterruptedException {
+		int sizeVal = vals.length;
+		int sizeTotal = 0;
+		int[] indexArr = new int[sizeVal];
+		for(int i = 0; i < sizeVal; i++) {
+			indexArr[i] = sizeTotal;
+			sizeTotal += vals[i].SIZE;
 		}
-		BitData newData = new BitData(size);
-		int index = 0;
-		for(BitData d : vals) {
-			for(int i = 0; i < d.SIZE; i++) {
-				newData.setBit(index, d.isActiveBit(i));
-				index++;
-			}
+		ExecutorService pool = Executors.newFixedThreadPool(4);
+		List<Callable<Object>> task = new ArrayList<>();
+		BitData newData = new BitData(sizeTotal);
+		for(int i = 0; i < sizeVal; i++) {
+			int position = indexArr[i];
+			BitData d = vals[i];
+			task.add(Executors.callable(() -> { 
+				for(int j = 0; j < d.SIZE; j++) {
+					newData.setBit(position + j, d.isActiveBit(j));
+				}
+			}));
 		}
+		List<Future<Object>> futures = pool.invokeAll(task);
+		pool.shutdown();
 		return newData;
 	}
 	
-	public void setBit(int position, boolean isActive) {
+	public synchronized void setBit(int position, boolean isActive) {
 		if(SIZE <= position) {
 			throw new ArrayIndexOutOfBoundsException();
 		}
@@ -62,7 +74,7 @@ public class BitData implements Serializable{
 		return bool;
 	}
 	
-	public int getSize() {
+	public int size() {
 		return SIZE;
 	}
 	

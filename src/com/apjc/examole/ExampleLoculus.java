@@ -4,7 +4,7 @@ import com.apjc.loculus.Loculus;
 
 public class ExampleLoculus {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		String str = "Hello world";
 		Loculus<Character> loculus = new Loculus<>(str.chars().mapToObj(i -> (char)i).toList());
 		loculus.add('!');
