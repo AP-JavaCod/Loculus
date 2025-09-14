@@ -4,8 +4,9 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 
-public class Loculus <T> implements Serializable{
+public class Loculus <T> implements Serializable, Iterable<T>{
 	
 	private Noda noda;
 	private BitData bitCod;
@@ -16,7 +17,6 @@ public class Loculus <T> implements Serializable{
 	
 	public void add(T values) throws InterruptedException  {
 		List<T> data = getValues();
-		noda.add(values);
 		data.add(values);
 		setCod(data);
 	}
@@ -24,7 +24,6 @@ public class Loculus <T> implements Serializable{
 	public void add(List<T> list) throws InterruptedException {
 		List<T> data = getValues();
 		for(T val : list) {
-			noda.add(val);
 			data.add(val);
 		}
 		setCod(data);
@@ -35,6 +34,7 @@ public class Loculus <T> implements Serializable{
 	}
 	
 	private void setCod(List<T> data) throws InterruptedException {
+		noda = null;
 		for(T val : data) {
 			if(noda == null) {
 				noda = new Noda(val);
@@ -74,6 +74,11 @@ public class Loculus <T> implements Serializable{
 			}
 		}
 		return data;
+	}
+	
+	@Override
+	public Iterator<T> iterator() {
+		return new BitIterator();
 	}
 	
 	private class Noda implements Serializable{
@@ -117,6 +122,30 @@ public class Loculus <T> implements Serializable{
 				return values;
 			}
 			return next != null ? next.getValues(index - 1) : null;
+		}
+		
+	}
+	
+	private class BitIterator implements Iterator<T>{
+
+		private int index = 0;
+		
+		@Override
+		public boolean hasNext() {
+			return index < bitCod.size();
+		}
+
+		@Override
+		public T next() {
+			int pos = 0;
+			while(index + pos < bitCod.size()) {
+				if(!bitCod.isActiveBit(index + pos)) {
+					index += pos + 1;
+					return noda.getValues(pos);
+				}
+				pos++;
+			}
+			return null;
 		}
 		
 	}

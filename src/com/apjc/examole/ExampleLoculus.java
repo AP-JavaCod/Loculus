@@ -12,7 +12,7 @@ public class ExampleLoculus {
 		String data = "I am lave java cod";
 		loculus.add(data.chars().mapToObj(i -> (char)i).toList());
 		System.out.println(loculus.getCod());
-		for(char el: loculus.getValues()) {
+		for(char el: loculus) {
 			System.out.print(el);
 		}
 		System.out.println();
