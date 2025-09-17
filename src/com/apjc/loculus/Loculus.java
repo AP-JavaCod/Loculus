@@ -12,12 +12,20 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 	private BitData bitCod;
 	
 	public Loculus(List<T> data) throws InterruptedException {
+		for(T val : data) {
+			if(noda == null) {
+				noda = new Noda(val);
+			}else {
+				noda.add(val);
+			}
+		}
 		setCod(data);
 	}
 	
 	public void add(T values) throws InterruptedException  {
 		List<T> data = getValues();
 		data.add(values);
+		noda.add(values);
 		setCod(data);
 	}
 	
@@ -25,6 +33,7 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 		List<T> data = getValues();
 		for(T val : list) {
 			data.add(val);
+			noda.add(val);
 		}
 		setCod(data);
 	}
@@ -34,14 +43,6 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 	}
 	
 	private void setCod(List<T> data) throws InterruptedException {
-		noda = null;
-		for(T val : data) {
-			if(noda == null) {
-				noda = new Noda(val);
-			}else {
-				noda.add(val);
-			}
-		}
 		int sizeList = data.size();
 		BitData[] buffers = new BitData[sizeList];
 		for(int i = 0; i < sizeList; i++) {
