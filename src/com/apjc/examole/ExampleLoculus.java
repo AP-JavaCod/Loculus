@@ -5,17 +5,19 @@ import com.apjc.loculus.Loculus;
 public class ExampleLoculus {
 
 	public static void main(String[] args) throws InterruptedException {
-		String str = "Hello world";
+		String str = "Helo world";
 		Loculus<Character> loculus = new Loculus<>(str.chars().mapToObj(i -> (char)i).toList());
 		loculus.add('!');
 		loculus.add(' ');
 		String data = "I am lave java cod";
 		loculus.add(data.chars().mapToObj(i -> (char)i).toList());
+		loculus.add(3, 'l');
 		System.out.println(loculus.getCod());
 		for(char el: loculus) {
 			System.out.print(el);
 		}
 		System.out.println();
+		System.out.println(loculus.getValue(4));
 	}
 
 }

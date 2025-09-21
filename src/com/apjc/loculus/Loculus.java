@@ -29,6 +29,13 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 		setCod(data);
 	}
 	
+	public void add(int index, T values) throws InterruptedException {
+		List<T> data = getValues();
+		data.add(index, values);
+		noda.add(values);
+		setCod(data);
+	}
+	
 	public void add(List<T> list) throws InterruptedException {
 		List<T> data = getValues();
 		for(T val : list) {
@@ -45,13 +52,11 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 	private void setCod(List<T> data) throws InterruptedException {
 		int sizeList = data.size();
 		BitData[] buffers = new BitData[sizeList];
-		for(int i = 0; i < sizeList; i++) {
-			buffers[i] = new BitData(noda.getIndex(data.get(i)) + 1);
-		}
 		ExecutorService pool = Executors.newFixedThreadPool(4);
 		List<Callable<Object>> task = new ArrayList<>();
 		for(int i = 0; i < sizeList; i++) {
-			BitData buffer = buffers[i];
+			BitData buffer = new BitData(noda.getIndex(data.get(i)) + 1);
+			buffers[i] = buffer;
 			task.add(Executors.callable(() -> {
 				for(int j = 1; j < buffer.size(); j++) {
 					buffer.setBit(j - 1, true);
@@ -61,6 +66,26 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 		List<Future<Object>> futures = pool.invokeAll(task);
 		pool.shutdown();
 		bitCod = BitData.split(buffers);
+	}
+	
+	public T getValue(int index) {
+		int position = 0;
+		while(position < bitCod.size() && index > 0) {
+			if(!bitCod.isActiveBit(position)) {
+				index --;
+			}
+			position++;
+		}
+		int iV = 0;
+		while(position < bitCod.size()) {
+			if(bitCod.isActiveBit(position)) {
+				iV++;
+				position ++;
+			}else {
+				return noda.getValues(iV);
+			}
+		}
+		throw new ArrayIndexOutOfBoundsException();
 	}
 	
 	public List<T> getValues() {
