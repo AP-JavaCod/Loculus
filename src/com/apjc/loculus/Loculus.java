@@ -8,6 +8,7 @@ import java.util.Iterator;
 
 public class Loculus <T> implements Serializable, Iterable<T>{
 	
+	private static final long serialVersionUID = 6633318363123681067L;
 	private Noda noda;
 	private BitData bitCod;
 	
@@ -76,13 +77,9 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 			}
 			position++;
 		}
-		int iV = 0;
-		while(position < bitCod.size()) {
-			if(bitCod.isActiveBit(position)) {
-				iV++;
-				position ++;
-			}else {
-				return noda.getValues(iV);
+		for(int i = position; i < bitCod.size(); i++) {
+			if(!bitCod.isActiveBit(i)) {
+				return noda.getValues(i - position);
 			}
 		}
 		throw new ArrayIndexOutOfBoundsException();
@@ -90,14 +87,8 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 	
 	public List<T> getValues() {
 		List<T> data = new ArrayList<>();
-		int index = 0;
-		for(boolean bool : bitCod.isActiveAll()) {
-			if(bool) {
-				index++;
-			}else {
-				data.add(noda.getValues(index));
-				index = 0;
-			}
+		for(T values : this) {
+			data.add(values);
 		}
 		return data;
 	}

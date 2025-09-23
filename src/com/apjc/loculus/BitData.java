@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 public class BitData implements Serializable{
 	
+	private static final long serialVersionUID = 7867624195887593226L;
 	private final int SIZE;
 	private final byte[] buffer;
 	
