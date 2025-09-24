@@ -6,7 +6,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src/main/java"/>
-	<classpathentry excluding="src/main/java/|src/main/resources/|src/test/java/|src/test/resources/" kind="src" path=""/>
+	<classpathentry excluding="src/main/java/|src/main/resources/|src/test/java/|src/test/resources/|src/" kind="src" path=""/>
 	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="src" path="src/test/java"/>
 	<classpathentry kind="src" path="src/test/resources"/>
