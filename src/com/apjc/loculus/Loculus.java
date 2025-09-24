@@ -8,17 +8,14 @@ import java.util.Iterator;
 
 public class Loculus <T> implements Serializable, Iterable<T>{
 	
-	private static final long serialVersionUID = 6633318363123681067L;
-	private Noda noda;
+	private static final long serialVersionUID = -1055085668157322995L;
+	private final Noda NODA;
 	private BitData bitCod;
 	
 	public Loculus(List<T> data) throws InterruptedException {
-		for(T val : data) {
-			if(noda == null) {
-				noda = new Noda(val);
-			}else {
-				noda.add(val);
-			}
+		NODA = new Noda(data.getFirst());
+		for(int i = 1; i < data.size(); i++) {
+			NODA.add(data.get(i));
 		}
 		setCod(data);
 	}
@@ -26,14 +23,14 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 	public void add(T values) throws InterruptedException  {
 		List<T> data = getValues();
 		data.add(values);
-		noda.add(values);
+		NODA.add(values);
 		setCod(data);
 	}
 	
 	public void add(int index, T values) throws InterruptedException {
 		List<T> data = getValues();
 		data.add(index, values);
-		noda.add(values);
+		NODA.add(values);
 		setCod(data);
 	}
 	
@@ -41,7 +38,7 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 		List<T> data = getValues();
 		for(T val : list) {
 			data.add(val);
-			noda.add(val);
+			NODA.add(val);
 		}
 		setCod(data);
 	}
@@ -56,7 +53,7 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 		ExecutorService pool = Executors.newFixedThreadPool(4);
 		List<Callable<Object>> task = new ArrayList<>();
 		for(int i = 0; i < sizeList; i++) {
-			BitData buffer = new BitData(noda.getIndex(data.get(i)) + 1);
+			BitData buffer = new BitData(NODA.getIndex(data.get(i)) + 1);
 			buffers[i] = buffer;
 			task.add(Executors.callable(() -> {
 				for(int j = 1; j < buffer.size(); j++) {
@@ -64,9 +61,9 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 				}
 			}));
 		}
-		List<Future<Object>> futures = pool.invokeAll(task);
+		pool.invokeAll(task);
 		pool.shutdown();
-		bitCod = BitData.split(buffers);
+		bitCod = BitData.merge(buffers);
 	}
 	
 	public T getValue(int index) {
@@ -79,7 +76,7 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 		}
 		for(int i = position; i < bitCod.size(); i++) {
 			if(!bitCod.isActiveBit(i)) {
-				return noda.getValues(i - position);
+				return NODA.getValues(i - position);
 			}
 		}
 		throw new ArrayIndexOutOfBoundsException();
@@ -100,6 +97,7 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 	
 	private class Noda implements Serializable{
 		
+		private static final long serialVersionUID = -7808087483619656304L;
 		private T values;
 		private int quantityValues;
 		private Noda next;
@@ -154,13 +152,12 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 
 		@Override
 		public T next() {
-			int pos = 0;
-			while(index + pos < bitCod.size()) {
-				if(!bitCod.isActiveBit(index + pos)) {
-					index += pos + 1;
-					return noda.getValues(pos);
+			int pos = index + 1;
+			for(;index < bitCod.size(); index++) {
+				if(!bitCod.isActiveBit(index)) {
+					index++;
+					return NODA.getValues(index - pos);
 				}
-				pos++;
 			}
 			return null;
 		}

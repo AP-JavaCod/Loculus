@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class BitData implements Serializable{
 	
-	private static final long serialVersionUID = 7867624195887593226L;
+	private static final long serialVersionUID = -3491889709823755046L;
 	private final int SIZE;
 	private final byte[] buffer;
 	
@@ -20,29 +20,13 @@ public class BitData implements Serializable{
 		buffer = new byte[size];
 	}
 	
-	public static BitData split(BitData... vals) throws InterruptedException {
-		int sizeVal = vals.length;
-		int sizeTotal = 0;
-		int[] indexArr = new int[sizeVal];
-		for(int i = 0; i < sizeVal; i++) {
-			indexArr[i] = sizeTotal;
-			sizeTotal += vals[i].SIZE;
-		}
+	public static BitData merge(BitData... vals) throws InterruptedException {
+		MergeTask task = new MergeTask();
+		BitData data = task.add(vals);
 		ExecutorService pool = Executors.newFixedThreadPool(4);
-		List<Callable<Object>> task = new ArrayList<>();
-		BitData newData = new BitData(sizeTotal);
-		for(int i = 0; i < sizeVal; i++) {
-			int position = indexArr[i];
-			BitData d = vals[i];
-			task.add(Executors.callable(() -> { 
-				for(int j = 0; j < d.SIZE; j++) {
-					newData.setBit(position + j, d.isActiveBit(j));
-				}
-			}));
-		}
-		List<Future<Object>> futures = pool.invokeAll(task);
+		pool.invokeAll(task.getTask());
 		pool.shutdown();
-		return newData;
+		return data;
 	}
 	
 	public synchronized void setBit(int position, boolean isActive) {
@@ -86,6 +70,32 @@ public class BitData implements Serializable{
 			str += isActiveBit(i) ? "1" : "0";
 		}
 		return str;
+	}
+	
+	private static class MergeTask{
+		
+		private BitData buffer = null;
+		private List<Callable<Object>> task = new ArrayList<>();
+		
+		public BitData add(BitData[] data) {
+			int totalSize = 0;
+			for(BitData el : data) {
+				int position = totalSize;
+				totalSize += el.SIZE;
+				task.add(Executors.callable(() -> {
+					for(int i = 0; i < el.SIZE; i++) {
+						buffer.setBit(position + i, el.isActiveBit(i));
+					}
+				}));
+			}
+			buffer = new BitData(totalSize);
+			return buffer;
+		}
+		
+		public List<Callable<Object>> getTask(){
+			return task;
+		}
+		
 	}
 
 }
