@@ -47,23 +47,23 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 		return bitCod.toString();
 	}
 	
-	private void setCod(List<T> data) throws InterruptedException {
-		int sizeList = data.size();
-		BitData[] buffers = new BitData[sizeList];
-		ExecutorService pool = Executors.newFixedThreadPool(4);
+	private void setCod(List<T> list) throws InterruptedException {
+		int totalTask = 0;
 		List<Callable<Object>> task = new ArrayList<>();
-		for(int i = 0; i < sizeList; i++) {
-			BitData buffer = new BitData(NODA.getIndex(data.get(i)) + 1);
-			buffers[i] = buffer;
+		for(T el : list) {
+			int position = totalTask;
+			int lim = NODA.getIndex(el);
 			task.add(Executors.callable(() -> {
-				for(int j = 1; j < buffer.size(); j++) {
-					buffer.setBit(j - 1, true);
+				for(int i = 0; i < lim; i++) {
+					bitCod.setBit(position + i, true);
 				}
 			}));
+			totalTask += lim + 1;
 		}
+		bitCod = new BitData(totalTask);
+		ExecutorService pool = Executors.newFixedThreadPool(4);
 		pool.invokeAll(task);
 		pool.shutdown();
-		bitCod = BitData.merge(buffers);
 	}
 	
 	public T getValue(int index) {

@@ -1,13 +1,10 @@
 package com.apjc.loculus;
 
 import java.io.Serializable;
-import java.util.concurrent.*;
-import java.util.List;
-import java.util.ArrayList;
 
 public class BitData implements Serializable{
 	
-	private static final long serialVersionUID = -3491889709823755046L;
+	private static final long serialVersionUID = 7222559447800847400L;
 	private final int SIZE;
 	private final byte[] buffer;
 	
@@ -18,15 +15,6 @@ public class BitData implements Serializable{
 			size++;
 		}
 		buffer = new byte[size];
-	}
-	
-	public static BitData merge(BitData... vals) throws InterruptedException {
-		MergeTask task = new MergeTask();
-		BitData data = task.add(vals);
-		ExecutorService pool = Executors.newFixedThreadPool(4);
-		pool.invokeAll(task.getTask());
-		pool.shutdown();
-		return data;
 	}
 	
 	public synchronized void setBit(int position, boolean isActive) {
@@ -70,32 +58,6 @@ public class BitData implements Serializable{
 			str += isActiveBit(i) ? "1" : "0";
 		}
 		return str;
-	}
-	
-	private static class MergeTask{
-		
-		private BitData buffer = null;
-		private List<Callable<Object>> task = new ArrayList<>();
-		
-		public BitData add(BitData[] data) {
-			int totalSize = 0;
-			for(BitData el : data) {
-				int position = totalSize;
-				totalSize += el.SIZE;
-				task.add(Executors.callable(() -> {
-					for(int i = 0; i < el.SIZE; i++) {
-						buffer.setBit(position + i, el.isActiveBit(i));
-					}
-				}));
-			}
-			buffer = new BitData(totalSize);
-			return buffer;
-		}
-		
-		public List<Callable<Object>> getTask(){
-			return task;
-		}
-		
 	}
 
 }
