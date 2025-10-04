@@ -8,29 +8,34 @@ import java.util.Iterator;
 
 public class Loculus <T> implements Serializable, Iterable<T>{
 	
-	private static final long serialVersionUID = -1055085668157322995L;
-	private final Noda NODA;
+	private static final long serialVersionUID = 2588370670733477205L;
+	private Noda noda;
 	private BitData bitCod;
 	
+	public Loculus() {
+		noda = null;
+		bitCod = null;
+	}
+	
+	public Loculus(T values) throws InterruptedException {
+		add(values);
+	}
+	
 	public Loculus(List<T> data) throws InterruptedException {
-		NODA = new Noda(data.getFirst());
-		for(int i = 1; i < data.size(); i++) {
-			NODA.add(data.get(i));
-		}
-		setCod(data);
+		add(data);
 	}
 	
 	public void add(T values) throws InterruptedException  {
 		List<T> data = getValues();
 		data.add(values);
-		NODA.add(values);
+		setNoda(values);
 		setCod(data);
 	}
 	
 	public void add(int index, T values) throws InterruptedException {
 		List<T> data = getValues();
 		data.add(index, values);
-		NODA.add(values);
+		setNoda(values);
 		setCod(data);
 	}
 	
@@ -38,7 +43,7 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 		List<T> data = getValues();
 		for(T val : list) {
 			data.add(val);
-			NODA.add(val);
+			setNoda(val);
 		}
 		setCod(data);
 	}
@@ -47,12 +52,20 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 		return bitCod.toString();
 	}
 	
+	private void setNoda(T values) {
+		if(noda != null) {
+			noda.add(values);
+		}else {
+			noda = new Noda(values);
+		}
+	}
+	
 	private void setCod(List<T> list) throws InterruptedException {
 		int totalTask = 0;
 		List<Callable<Object>> task = new ArrayList<>();
 		for(T el : list) {
 			int position = totalTask;
-			int lim = NODA.getIndex(el);
+			int lim = noda.getIndex(el);
 			task.add(Executors.callable(() -> {
 				for(int i = 0; i < lim; i++) {
 					bitCod.setBit(position + i, true);
@@ -76,7 +89,7 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 		}
 		for(int i = position; i < bitCod.size(); i++) {
 			if(!bitCod.isActiveBit(i)) {
-				return NODA.getValues(i - position);
+				return noda.getValues(i - position);
 			}
 		}
 		throw new ArrayIndexOutOfBoundsException();
@@ -147,7 +160,7 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 		
 		@Override
 		public boolean hasNext() {
-			return index < bitCod.size();
+			return bitCod != null && index < bitCod.size();
 		}
 
 		@Override
@@ -156,7 +169,7 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 			for(;index < bitCod.size(); index++) {
 				if(!bitCod.isActiveBit(index)) {
 					index++;
-					return NODA.getValues(index - pos);
+					return noda.getValues(index - pos);
 				}
 			}
 			return null;
