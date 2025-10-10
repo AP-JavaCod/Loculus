@@ -1,7 +1,6 @@
 package com.apjc.loculus;
 
 import java.util.List;
-import java.util.concurrent.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,7 +9,7 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 	
 	private static final long serialVersionUID = 2588370670733477205L;
 	private Noda noda;
-	private BitData bitCod;
+	private BitChar bitCod;
 	
 	public Loculus() {
 		noda = null;
@@ -61,34 +60,35 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 	}
 	
 	private void setCod(List<T> list) throws InterruptedException {
-		int totalTask = 0;
-		List<Callable<Object>> task = new ArrayList<>();
-		for(T el : list) {
-			int position = totalTask;
-			int lim = noda.getIndex(el);
-			task.add(Executors.callable(() -> {
-				for(int i = 0; i < lim; i++) {
-					bitCod.setBit(position + i, true);
-				}
-			}));
-			totalTask += lim + 1;
+		int sizeBits = list.size();
+		int total = 0;
+		BitChar[] bits = new BitChar[sizeBits];
+		for(int i = 0; i < sizeBits; i++) {
+			BitChar lim = noda.getBits(list.get(i), 0);
+			bits[i] = lim;
+			total += lim.size() + 1;
 		}
-		bitCod = new BitData(totalTask);
-		ExecutorService pool = Executors.newFixedThreadPool(4);
-		pool.invokeAll(task);
-		pool.shutdown();
+		bitCod = new BitChar(total);
+		int position = 0;
+		for(BitChar el : bits) {
+			int lim = el.size();
+			for(int i = 0; i < lim; i++) {
+				bitCod.setBit(position + i, el.isActive(i));
+			}
+			position += lim + 1;
+		}
 	}
 	
 	public T getValue(int index) {
 		int position = 0;
 		while(position < bitCod.size() && index > 0) {
-			if(!bitCod.isActiveBit(position)) {
+			if(!bitCod.isActive(position)) {
 				index --;
 			}
 			position++;
 		}
 		for(int i = position; i < bitCod.size(); i++) {
-			if(!bitCod.isActiveBit(i)) {
+			if(!bitCod.isActive(i)) {
 				return noda.getValues(i - position);
 			}
 		}
@@ -145,6 +145,22 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 			return next != null ? 1 + next.getIndex(element) : -1;
 		}
 		
+		public BitChar getBits(T element, int size) {
+			BitChar bits;
+			if(this.values.equals(element)) {
+				bits = new BitChar(size + 1);
+				bits.setBit(size, false);
+			}else if(next != null){
+				bits = next.getBits(element, size + 1);
+				if(bits != null) {
+					bits.setBit(size, true);
+				}
+			}else {
+				bits = null;
+			}
+			return bits;
+		}
+		
 		public T getValues(int index) {
 			if(index == 0) {
 				return values;
@@ -167,7 +183,7 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 		public T next() {
 			int pos = index + 1;
 			for(;index < bitCod.size(); index++) {
-				if(!bitCod.isActiveBit(index)) {
+				if(!bitCod.isActive(index)) {
 					index++;
 					return noda.getValues(index - pos);
 				}
