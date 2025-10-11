@@ -48,7 +48,7 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 	}
 	
 	public String getCod() {
-		return bitCod.toString();
+		return bitCod.getCode();
 	}
 	
 	private void setNoda(T values) {
@@ -64,9 +64,8 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 		int total = 0;
 		BitChar[] bits = new BitChar[sizeBits];
 		for(int i = 0; i < sizeBits; i++) {
-			BitChar lim = noda.getBits(list.get(i), 0);
-			bits[i] = lim;
-			total += lim.size() + 1;
+			bits[i] = noda.getBits(list.get(i), 0);
+			total += bits[i].size();
 		}
 		bitCod = new BitChar(total);
 		int position = 0;
@@ -75,7 +74,7 @@ public class Loculus <T> implements Serializable, Iterable<T>{
 			for(int i = 0; i < lim; i++) {
 				bitCod.setBit(position + i, el.isActive(i));
 			}
-			position += lim + 1;
+			position += lim;
 		}
 	}
 	

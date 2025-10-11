@@ -39,10 +39,10 @@ int Bits::size(){
 }
 
 void Bits::merge(Bits& bits, int& position){
-	for(int i = 0; i < sizeBuffer; i++){
-		bits.setBit(position, isActive(i));
-		position++;
+	for(int i = 0; i < this->sizeBuffer; i++){
+		bits.setBit(position + i, this->isActive(i));
 	}
+	position += this->sizeBuffer + 1;
 }
 
 Bits Bits::operator +(Bits bits){
