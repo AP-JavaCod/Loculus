@@ -38,17 +38,15 @@ int Bits::size(){
 	return sizeBuffer;
 }
 
-void Bits::merge(Bits& bits, int& position){
+void Bits::merge(Bits& bits, int position){
 	for(int i = 0; i < this->sizeBuffer; i++){
 		bits.setBit(position + i, this->isActive(i));
 	}
-	position += this->sizeBuffer + 1;
 }
 
-Bits Bits::operator +(Bits bits){
+Bits Bits::operator +(Bits& bits){
 	Bits b(this->sizeBuffer + bits.sizeBuffer);
-	int position = 0;
-	this->merge(b, position);
-	bits.merge(b, position);
+	this->merge(b, 0);
+	bits.merge(b, this->sizeBuffer);
 	return b;
 }

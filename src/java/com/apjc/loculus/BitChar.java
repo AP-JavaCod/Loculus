@@ -8,26 +8,30 @@ public class BitChar {
 		bitID = create(size);
 	}
 	
-	public BitChar(BitChar a, BitChar b) {
-		bitID = merge(a.bitID, b.bitID);
+	private BitChar(long id) {
+		bitID = id;
 	}
 	
 	public boolean isOpen() {
 		return bitID > 0;
 	}
 	
-	public void close() {
+	public void close(){
 		delete();
 		bitID = -1;
 	}
 	
-	public boolean[] isActiveAll() {
+	public boolean[] isActiveAll(){
 		int l = size();
 		boolean[] bits = new boolean[l];
 		for(int i = 0; i < l; i++) {
 			bits[i] = isActive(i);
 		}
 		return bits;
+	}
+	
+	public BitChar merge(BitChar bits){
+		return new BitChar(merge(this.bitID, bits.bitID));
 	}
 	
 	public native void setBit(int index, boolean isActivite);

@@ -16,7 +16,7 @@ public:
 	const char* toString();
 	int size();
 
-	Bits operator + (Bits bits);
+	Bits operator + (Bits& bits);
 
 private:
 
@@ -24,7 +24,7 @@ private:
 	char* buffer;
 
 	static int calculateSize(int);
-	void merge(Bits& bits, int& position);
+	void merge(Bits& bits, int position);
 
 };
 
